@@ -1,0 +1,47 @@
+replicaCount: 1
+
+image:
+  repository: cloudcustodian/c7n
+  pullPolicy: IfNotPresent
+  tag: 0.9.8
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+policyTemplate: 
+  name: "policy name"
+  concurrencyPolicy: {}
+  schedule: "cron job schedule"
+  failedJobsHistoryLimit: 10
+  successfulJobsHistoryLimit: 10
+  policies: 
+  - name: s3-cross-account
+    description: test
+    resource: aws.s3
+    region: us-east-1
+    filters:
+      - type: cross-account
+    actions:
+      - type: remove-statements
+        statement_ids: matched
+
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
