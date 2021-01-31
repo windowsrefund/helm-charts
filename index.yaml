@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  cloud-custodian-cron:
+  - apiVersion: v2
+    appVersion: 0.9.10.0
+    created: "2021-01-31T02:21:53.139351722-05:00"
+    description: Cloud Custodian helm chart allowing use of cron jobs to schedule policy runs
+    digest: fcb1d8ad696d58da9f86bb21d4fa0c2f9a089d3c7ce6e3bda00db8560fe3b2ed
+    name: cloud-custodian-cron
+    type: application
+    urls:
+    - cloud-custodian-cron-0.1.1.tgz
+    version: 0.1.1
+generated: "2021-01-31T02:21:53.13895451-05:00"
