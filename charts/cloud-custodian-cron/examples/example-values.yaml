@@ -1,7 +1,13 @@
-image:
-  repository: cloudcustodian/c7n
-  pullPolicy: IfNotPresent
+# The aws key can be used to set environment variables used to interact with AWS services.
+# This is useful when sending metrics and/or sending logs to an S3 bucket
+# Rather than setting this in a values.yaml, use SOPS or some other secure solution.
+#
+# aws:
+#   accessKey:
+#   secretKey:
+#   defaultRegion:
 
+# Example policies and their associated schedules
 scheduledPolicies: 
 - name: daily-policies
   concurrencyPolicy: {}
