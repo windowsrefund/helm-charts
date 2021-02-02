@@ -12,7 +12,14 @@ scheduledPolicies:
 - name: daily-policies
   concurrencyPolicy: {}
   schedule: "@daily"
-  commandArgs: "run -v"
+# Do not list policies.yaml here as it will be appended automatically
+  commandArgs:
+    - run
+    - -v
+    - -s
+    - s3://mybucket/output
+    - -m
+    - aws
   failedJobsHistoryLimit: 10
   successfulJobsHistoryLimit: 10
   policies:

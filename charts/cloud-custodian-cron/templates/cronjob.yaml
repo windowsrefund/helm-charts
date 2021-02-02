@@ -41,15 +41,8 @@ spec:
             image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
             imagePullPolicy: {{ $.Values.image.pullPolicy }}
             workingDir: "/home/custodian"
-            # command: ["/bin/sh", "-c", "sleep 360"]
-            args:
-              - run
-              - -v
-              - -s
-              - s3://ak-custodian/output
-              - -m
-              - aws
-              - policies.yaml
+            {{- $commandArgs := append (required "Schedule must contain commandArgs" .commandArgs) "policies.yaml" }}
+            args: {{ $commandArgs | uniq }}
             env:
               {{- if $.Values.aws }}
               - name: AWS_ACCESS_KEY_ID
