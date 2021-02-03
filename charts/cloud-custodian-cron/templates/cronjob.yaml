@@ -41,8 +41,16 @@ spec:
             image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
             imagePullPolicy: {{ $.Values.image.pullPolicy }}
             workingDir: "/home/custodian"
-            {{- $commandArgs := append (required "Schedule must contain commandArgs" .commandArgs) "policies.yaml" }}
-            args: {{ $commandArgs | uniq }}
+            args:
+              - run
+              - -v
+              - -s
+              - {{ required "outputDirectory is required." .outputDirectory }}
+            {{- if .metricsProvider }}
+              - -m
+              - {{ .metricsProvider }}
+            {{- end }}
+              - policies.yaml
             env:
               {{- if $.Values.aws }}
               - name: AWS_ACCESS_KEY_ID
