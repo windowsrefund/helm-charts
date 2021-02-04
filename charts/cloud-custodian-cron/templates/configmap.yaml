@@ -8,6 +8,10 @@ metadata:
    {{- include "cloud-custodian-cron.labels" $ | nindent 4 }}
 data:
   policies.yaml: |-
+    {{- if .vars }}
+    vars:
+      {{- toYaml .vars | nindent 6 }}
+    {{- end }}
     policies:
       {{- toYaml .policies | nindent 4 }}
 {{- end }}
