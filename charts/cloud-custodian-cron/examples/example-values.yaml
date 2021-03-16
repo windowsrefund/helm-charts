@@ -1,0 +1,69 @@
+# The aws key can be used to set environment variables used to interact with AWS services.
+# This is useful when sending metrics and/or sending logs to an S3 bucket
+# Rather than setting this in a values.yaml, use SOPS or some other secure solution.
+#
+# aws:
+#   accessKey:
+#   secretKey:
+#   defaultRegion:
+
+# Example policies and their associated schedules
+scheduledPolicies: 
+- name: daily-policies
+  concurrencyPolicy: {}
+  schedule: "@daily"
+  outputDirectory: s3://mybucket/output
+  # metricsProvider is optional
+  metricsProvider: aws
+  failedJobsHistoryLimit: 10
+  successfulJobsHistoryLimit: 10
+  policies:
+   - name: s3-cross-account
+     description: |
+       Checks S3 for buckets with cross-account access and
+       removes the cross-account access.
+     resource: aws.s3
+     region: us-east-1
+     filters:
+       - type: cross-account
+     actions:
+       - type: remove-statements
+         statement_ids: matched  
+   - name: ec2-require-non-public-and-encrypted-volumes
+     resource: aws.ec2
+     description: |
+      Provision a lambda and cloud watch event target
+      that looks at all new instances and terminates those with
+      unencrypted volumes.
+     mode:
+      type: cloudtrail
+      role: CloudCustodian-QuickStart
+      events:
+        - RunInstances
+     filters:
+      - type: ebs
+        key: Encrypted
+        value: false
+     actions:
+      - terminate
+- name: weekly-policies
+  description: foo
+  schedule: "@weekly"
+  commandArgs: "run -v"
+  policies:
+  - name: tag-compliance
+    resource: aws.ec2
+    description: |
+      Schedule a resource that does not meet tag compliance policies to be stopped in four days. Note a separate policy using the`marked-for-op` filter is required to actually stop the instances after four days.
+    filters:
+     - State.Name: running
+     - "tag:Environment": absent
+     - "tag:AppId": absent
+     - or:
+       - "tag:OwnerContact": absent
+       - "tag:DeptID": absent
+    actions:
+     - type: mark-for-op
+       op: stop
+       days: 4
+          

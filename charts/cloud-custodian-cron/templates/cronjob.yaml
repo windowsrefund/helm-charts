@@ -1,0 +1,114 @@
+{{- range .Values.scheduledPolicies }}
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: "{{ include "cloud-custodian-cron.fullname" $ }}-{{ .name }}"
+  labels:
+    {{- include "cloud-custodian-cron.labels" $ | nindent 4 }}
+spec:
+  concurrencyPolicy: {{ default "Allow" .concurrencyPolicy }}
+  schedule: {{ required "Scheduled policy must contain a schedule key" .schedule | quote }}
+  failedJobsHistoryLimit: {{ .failedJobsHistoryLimit }}
+  successfulJobsHistoryLimit: {{ .successfulJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      backOffLimit: 
+      template:
+        metadata:
+          {{- with $.Values.podAnnotations }}
+          annotations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          labels:
+            {{- include "cloud-custodian-cron.selectorLabels" $ | nindent 12 }}
+        spec:
+          volumes:
+          - name: policy
+            configMap:
+              name: "{{ include "cloud-custodian-cron.fullname" $ }}-{{ .name }}"
+          {{- with $.Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          serviceAccountName: {{ include "cloud-custodian-cron.serviceAccountName" $ }}
+          securityContext:
+            {{- toYaml $.Values.podSecurityContext | nindent 12 }}
+          containers:
+          - name: {{ $.Chart.Name }}
+            securityContext:
+              {{- toYaml $.Values.securityContext | nindent 14 }}
+            image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
+            imagePullPolicy: {{ $.Values.image.pullPolicy }}
+            workingDir: "/home/custodian"
+            args:
+              - run
+              - -v
+              - -s
+              - {{ required "outputDirectory is required." .outputDirectory }}
+            {{- if .metricsProvider }}
+              - -m
+              - {{ .metricsProvider }}
+            {{- end }}
+              - -l
+              - /custodian/logs
+              - policies.yaml
+            env:
+              {{- if $.Values.secrets.azure }}
+              - name: AZURE_TENANT_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ include "cloud-custodian-cron.fullname" $ }}
+                    key: tenantID
+              - name: AZURE_SUBSCRIPTION_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ include "cloud-custodian-cron.fullname" $ }}
+                    key: subscriptionID
+              - name: AZURE_CLIENT_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ include "cloud-custodian-cron.fullname" $ }}
+                    key: clientID
+              - name: AZURE_CLIENT_SECRET
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ include "cloud-custodian-cron.fullname" $ }}
+                    key: clientSecret
+              {{- end }}
+              {{- if $.Values.secrets.aws }}
+              - name: AWS_ACCESS_KEY_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ include "cloud-custodian-cron.fullname" $ }}
+                    key: accessKey
+              - name: AWS_SECRET_ACCESS_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ include "cloud-custodian-cron.fullname" $ }}
+                    key: secretKey
+              - name: AWS_DEFAULT_REGION
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ include "cloud-custodian-cron.fullname" $ }}
+                    key: defaultRegion
+              {{- end }}
+            volumeMounts:
+            - name: policy
+              mountPath: /home/custodian
+            resources:
+              {{- toYaml $.Values.resources | nindent 14 }}
+          {{- with $.Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $.Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $.Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          restartPolicy: {{ default "OnFailure" .restartPolicy }}
+{{- end }}
