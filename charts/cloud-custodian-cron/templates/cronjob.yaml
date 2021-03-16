@@ -50,9 +50,33 @@ spec:
               - -m
               - {{ .metricsProvider }}
             {{- end }}
+              - -l
+              - /custodian/logs
               - policies.yaml
             env:
-              {{- if $.Values.aws }}
+              {{- if $.Values.secrets.azure }}
+              - name: AZURE_TENANT_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ include "cloud-custodian-cron.fullname" $ }}
+                    key: tenantID
+              - name: AZURE_SUBSCRIPTION_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ include "cloud-custodian-cron.fullname" $ }}
+                    key: subscriptionID
+              - name: AZURE_CLIENT_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ include "cloud-custodian-cron.fullname" $ }}
+                    key: clientID
+              - name: AZURE_CLIENT_SECRET
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ include "cloud-custodian-cron.fullname" $ }}
+                    key: clientSecret
+              {{- end }}
+              {{- if $.Values.secrets.aws }}
               - name: AWS_ACCESS_KEY_ID
                 valueFrom:
                   secretKeyRef:
