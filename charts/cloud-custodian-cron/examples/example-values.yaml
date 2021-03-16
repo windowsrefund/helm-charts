@@ -1,11 +1,17 @@
-# The aws key can be used to set environment variables used to interact with AWS services.
-# This is useful when sending metrics and/or sending logs to an S3 bucket
+# The secrets key can be used to set environment variables that are specific to either AWS or Azure
+# This is useful when sending metrics and/or sending logs to cloud storage
 # Rather than setting this in a values.yaml, use SOPS or some other secure solution.
 #
-# aws:
-#   accessKey:
-#   secretKey:
-#   defaultRegion:
+# secrets:
+#   aws:
+#     accessKey:
+#     secretKey:
+#     defaultRegion:
+#   azure:
+#     tenantID:
+#     subscriptionID:
+#     clientID:
+#     clientSecret:
 
 # Example policies and their associated schedules
 scheduledPolicies: 
